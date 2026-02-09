@@ -1,0 +1,168 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../services/location_service.dart';
+import '../../../services/prayer_time_service.dart';
+import '../../../services/storage_service.dart';
+
+// --- State Classes ---
+
+class LocationState {
+  final double lat;
+  final double lng;
+  final String cityName;
+  final bool isLoading;
+
+  const LocationState({
+    required this.lat,
+    required this.lng,
+    required this.cityName,
+    required this.isLoading,
+  });
+
+  LocationState copyWith({
+    double? lat,
+    double? lng,
+    String? cityName,
+    bool? isLoading,
+  }) {
+    return LocationState(
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      cityName: cityName ?? this.cityName,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+class PrayerTimesState {
+  final Map<String, DateTime> times;
+  final String nextPrayer;
+  final bool isLoading;
+
+  const PrayerTimesState({
+    required this.times,
+    required this.nextPrayer,
+    required this.isLoading,
+  });
+
+  PrayerTimesState copyWith({
+    Map<String, DateTime>? times,
+    String? nextPrayer,
+    bool? isLoading,
+  }) {
+    return PrayerTimesState(
+      times: times ?? this.times,
+      nextPrayer: nextPrayer ?? this.nextPrayer,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+// --- Notifiers ---
+
+class LocationNotifier extends StateNotifier<LocationState> {
+  final LocationService _locationService;
+  final StorageService _storageService;
+
+  LocationNotifier(this._locationService, this._storageService)
+      : super(const LocationState(
+          lat: 41.0082,
+          lng: 28.9784,
+          cityName: 'Istanbul',
+          isLoading: true,
+        )) {
+    _init();
+  }
+
+  Future<void> _init() async {
+    final cached = _storageService.getLastLocation();
+    if (cached != null) {
+      state = LocationState(
+        lat: (cached['lat'] as num).toDouble(),
+        lng: (cached['lng'] as num).toDouble(),
+        cityName: cached['cityName'] as String,
+        isLoading: true,
+      );
+    }
+    await fetchLocation();
+  }
+
+  Future<void> fetchLocation() async {
+    state = state.copyWith(isLoading: true);
+    final position = await _locationService.getCurrentPosition();
+    final cityName = await _locationService.getCityName(
+      position.latitude,
+      position.longitude,
+    );
+    state = LocationState(
+      lat: position.latitude,
+      lng: position.longitude,
+      cityName: cityName,
+      isLoading: false,
+    );
+    await _storageService.saveLastLocation(
+      position.latitude,
+      position.longitude,
+      cityName,
+    );
+  }
+}
+
+class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
+  final PrayerTimeService _prayerTimeService;
+
+  PrayerTimesNotifier(this._prayerTimeService)
+      : super(const PrayerTimesState(
+          times: {},
+          nextPrayer: '',
+          isLoading: true,
+        ));
+
+  void loadPrayerTimes(double lat, double lng) {
+    state = state.copyWith(isLoading: true);
+    final times = _prayerTimeService.getDailyPrayerTimes(
+      lat,
+      lng,
+      DateTime.now(),
+    );
+    final nextPrayer = _prayerTimeService.getNextPrayer(lat, lng);
+    state = PrayerTimesState(
+      times: times,
+      nextPrayer: nextPrayer,
+      isLoading: false,
+    );
+  }
+}
+
+// --- Providers ---
+
+final locationProvider =
+    StateNotifierProvider<LocationNotifier, LocationState>((ref) {
+  return LocationNotifier(LocationService(), StorageService());
+});
+
+final prayerTimesProvider =
+    StateNotifierProvider<PrayerTimesNotifier, PrayerTimesState>((ref) {
+  final notifier = PrayerTimesNotifier(PrayerTimeService());
+  final location = ref.watch(locationProvider);
+  if (!location.isLoading) {
+    notifier.loadPrayerTimes(location.lat, location.lng);
+  }
+  return notifier;
+});
+
+final iftarCountdownProvider = StreamProvider<Duration>((ref) {
+  final location = ref.watch(locationProvider);
+  final prayerTimeService = PrayerTimeService();
+  return Stream.periodic(const Duration(seconds: 1), (_) {
+    return prayerTimeService.getTimeUntilIftar(location.lat, location.lng);
+  });
+});
+
+final sahurCountdownProvider = StreamProvider<Duration>((ref) {
+  final location = ref.watch(locationProvider);
+  final prayerTimeService = PrayerTimeService();
+  return Stream.periodic(const Duration(seconds: 1), (_) {
+    return prayerTimeService.getTimeUntilSahur(location.lat, location.lng);
+  });
+});
