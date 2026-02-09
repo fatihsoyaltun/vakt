@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
+import 'features/home/providers/home_provider.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/tasbih/screens/tasbih_screen.dart';
 import 'features/qibla/screens/qibla_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
 
-class VaktApp extends StatelessWidget {
+class VaktApp extends ConsumerWidget {
   const VaktApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'VAKT',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       home: const _MainShell(),
     );
   }

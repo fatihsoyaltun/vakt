@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../services/location_service.dart';
@@ -165,4 +166,28 @@ final sahurCountdownProvider = StreamProvider<Duration>((ref) {
   return Stream.periodic(const Duration(seconds: 1), (_) {
     return prayerTimeService.getTimeUntilSahur(location.lat, location.lng);
   });
+});
+
+// --- Theme ---
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final StorageService _storageService;
+
+  ThemeModeNotifier(this._storageService)
+      : super(
+          (_storageService.getSetting<bool>('dark_mode') ?? true)
+              ? ThemeMode.dark
+              : ThemeMode.light,
+        );
+
+  void toggle() {
+    final isDark = state == ThemeMode.dark;
+    state = isDark ? ThemeMode.light : ThemeMode.dark;
+    _storageService.saveSetting('dark_mode', !isDark);
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier(StorageService());
 });
