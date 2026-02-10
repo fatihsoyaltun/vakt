@@ -14,77 +14,80 @@ class DailyVerseCard extends ConsumerWidget {
     final verseAsync = ref.watch(verseProvider);
 
     return verseAsync.when(
-      loading: () => const Card(
-        color: AppColors.cardDark,
-        child: Padding(
+      loading: () => Card(
+        color: AppColors.card(context),
+        child: const Padding(
           padding: EdgeInsets.all(32),
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
       error: (_, _) => const SizedBox.shrink(),
       data: (verse) => Card(
-        color: AppColors.cardDark,
+        color: AppColors.card(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                decoration: const BoxDecoration(
-                  color: AppColors.gold,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
-                  ),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: AppColors.gold,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Günün Ayeti',
-                        style: AppTextStyles.title
-                            .copyWith(color: AppColors.gold),
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          verse.arabic,
-                          style: GoogleFonts.amiriQuran(
-                            fontSize: 18,
-                            color: AppColors.white,
-                            height: 1.8,
-                          ),
-                          textAlign: TextAlign.right,
-                          textDirection: TextDirection.rtl,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Günün Ayeti',
+                      style: AppTextStyles.titleOf(context)
+                          .copyWith(color: AppColors.gold),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        verse.arabic,
+                        style: GoogleFonts.amiriQuran(
+                          fontSize: 18,
+                          color: AppColors.text(context),
+                          height: 1.8,
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        verse.turkish,
-                        style: AppTextStyles.body,
-                        maxLines: 3,
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      verse.turkish,
+                      style: AppTextStyles.bodyOf(context),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
+                      style: AppTextStyles.captionOf(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
