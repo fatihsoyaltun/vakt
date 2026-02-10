@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../services/notification_service.dart';
 import '../../../services/storage_service.dart';
 import '../../home/providers/home_provider.dart';
 
@@ -23,6 +24,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.initState();
     _notifyIftar = _storage.getSetting<bool>('notify_iftar') ?? true;
     _notifySahur = _storage.getSetting<bool>('notify_sahur') ?? true;
+  }
+
+  void _rescheduleNotifications() {
+    final location = ref.read(locationProvider);
+    NotificationService.scheduleDailyNotifications(location.lat, location.lng);
   }
 
   @override
@@ -71,6 +77,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onChanged: (val) {
                     setState(() => _notifyIftar = val);
                     _storage.saveSetting('notify_iftar', val);
+                    _rescheduleNotifications();
                   },
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
@@ -82,6 +89,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onChanged: (val) {
                     setState(() => _notifySahur = val);
                     _storage.saveSetting('notify_sahur', val);
+                    _rescheduleNotifications();
                   },
                 ),
               ],
