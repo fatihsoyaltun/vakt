@@ -67,4 +67,23 @@ class AppTextStyles {
     fontWeight: FontWeight.bold,
     color: AppColors.darkBackground,
   );
+
+  // Theme-aware resolvers
+  static bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static TextStyle headlineOf(BuildContext context) =>
+      _isDark(context) ? headline : headlineLight;
+
+  static TextStyle titleOf(BuildContext context) =>
+      _isDark(context) ? title : titleLight;
+
+  static TextStyle bodyOf(BuildContext context) =>
+      _isDark(context) ? body : bodyLight;
+
+  static TextStyle captionOf(BuildContext context) =>
+      _isDark(context) ? caption : captionLight;
+
+  static TextStyle countdownOf(BuildContext context) =>
+      _isDark(context) ? countdown : countdownLight;
 }

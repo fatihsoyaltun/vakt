@@ -29,7 +29,7 @@ class PrayerTimesCard extends ConsumerWidget {
     }
 
     return Card(
-      color: AppColors.cardDark,
+      color: AppColors.card(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
@@ -47,15 +47,15 @@ class PrayerTimesCard extends ConsumerWidget {
                 children: [
                   Text(
                     name,
-                    style: AppTextStyles.body.copyWith(
-                      color: isNext ? AppColors.emerald : AppColors.white,
+                    style: AppTextStyles.bodyOf(context).copyWith(
+                      color: isNext ? AppColors.emerald : AppColors.text(context),
                       fontWeight: isNext ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                   Text(
                     time != null ? _formatTime(time) : '--:--',
-                    style: AppTextStyles.body.copyWith(
-                      color: isNext ? AppColors.emerald : AppColors.white,
+                    style: AppTextStyles.bodyOf(context).copyWith(
+                      color: isNext ? AppColors.emerald : AppColors.text(context),
                       fontWeight: isNext ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),

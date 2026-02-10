@@ -18,4 +18,14 @@ class AppColors {
   // Text
   static const Color white = Color(0xFFF5F5F5);
   static const Color textSecondary = Color(0xFF8E8E93);
+
+  // Theme-aware helpers
+  static bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color card(BuildContext context) =>
+      _isDark(context) ? cardDark : cardLight;
+
+  static Color text(BuildContext context) =>
+      _isDark(context) ? white : darkBackground;
 }

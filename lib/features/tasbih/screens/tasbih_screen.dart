@@ -68,11 +68,11 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardDark,
-        title: Text('Sıfırla', style: AppTextStyles.title),
+        backgroundColor: AppColors.card(ctx),
+        title: Text('Sıfırla', style: AppTextStyles.titleOf(ctx)),
         content: Text(
           'Sayacı sıfırlamak istediğinize emin misiniz?',
-          style: AppTextStyles.body,
+          style: AppTextStyles.bodyOf(ctx),
         ),
         actions: [
           TextButton(
@@ -154,7 +154,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                               value: progress,
                               strokeWidth: 6,
                               backgroundColor:
-                                  AppColors.cardDark,
+                                  AppColors.card(context),
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 isComplete
                                     ? AppColors.gold
@@ -170,13 +170,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 64,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.white,
+                                  color: AppColors.text(context),
                                 ),
                               ),
                               if (_target < 999999)
                                 Text(
                                   '/ $_target',
-                                  style: AppTextStyles.caption,
+                                  style: AppTextStyles.captionOf(context),
                                 ),
                             ],
                           ),
@@ -189,7 +189,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                     // Loop counter
                     Text(
                       'Tur: $_loop',
-                      style: AppTextStyles.title.copyWith(
+                      style: AppTextStyles.titleOf(context).copyWith(
                         color: _loop > 0
                             ? AppColors.gold
                             : AppColors.textSecondary,
@@ -201,7 +201,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                     // Tap hint
                     Text(
                       'Saymak için dokun',
-                      style: AppTextStyles.caption,
+                      style: AppTextStyles.captionOf(context),
                     ),
                   ],
                 ),
@@ -232,12 +232,12 @@ class _TargetChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.emerald : AppColors.cardDark,
+          color: selected ? AppColors.emerald : AppColors.card(context),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
-          style: AppTextStyles.body.copyWith(
+          style: AppTextStyles.bodyOf(context).copyWith(
             color: selected ? AppColors.white : AppColors.textSecondary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),

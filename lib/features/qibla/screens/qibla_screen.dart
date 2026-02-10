@@ -54,11 +54,11 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          Text('Kıble Yönü', style: AppTextStyles.headline),
+          Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
           const SizedBox(height: 8),
           Text(
             '${qiblaAngle.toStringAsFixed(1)}° ${_cardinalDirection(qiblaAngle)}',
-            style: AppTextStyles.caption,
+            style: AppTextStyles.captionOf(context),
           ),
           const SizedBox(height: 8),
           // Main compass area
@@ -75,7 +75,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
               _sensorAvailable == true
                   ? 'Cihazınızı düz tutun'
                   : 'Pusula sensörü bulunamadı — statik yön gösteriliyor',
-              style: AppTextStyles.caption,
+              style: AppTextStyles.captionOf(context),
               textAlign: TextAlign.center,
             ),
           ),
@@ -154,7 +154,10 @@ class _CompassView extends StatelessWidget {
               curve: Curves.easeOut,
               child: CustomPaint(
                 size: const Size(300, 300),
-                painter: _CompassPainter(),
+                painter: _CompassPainter(
+                  ringColor: AppColors.card(context),
+                  cardinalColor: AppColors.text(context),
+                ),
               ),
             ),
             // Qibla arrow (rotates to qibla direction)
@@ -202,6 +205,11 @@ class _CompassView extends StatelessWidget {
 }
 
 class _CompassPainter extends CustomPainter {
+  final Color ringColor;
+  final Color cardinalColor;
+
+  _CompassPainter({required this.ringColor, required this.cardinalColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -209,7 +217,7 @@ class _CompassPainter extends CustomPainter {
 
     // Outer ring
     final ringPaint = Paint()
-      ..color = AppColors.cardDark
+      ..color = ringColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(center, radius - 8, ringPaint);
@@ -227,7 +235,7 @@ class _CompassPainter extends CustomPainter {
           isCardinal ? radius - 30 : (isMajor ? radius - 24 : radius - 18);
 
       if (isCardinal) {
-        tickPaint.color = AppColors.white;
+        tickPaint.color = cardinalColor;
         tickPaint.strokeWidth = 2.5;
       } else if (isMajor) {
         tickPaint.color = AppColors.textSecondary;
@@ -250,11 +258,11 @@ class _CompassPainter extends CustomPainter {
 
     // Cardinal labels
     const labels = ['K', 'D', 'G', 'B'];
-    const colors = [
-      Color(0xFFE74C3C), // K = North, red
-      AppColors.white,
-      AppColors.white,
-      AppColors.white,
+    final colors = [
+      const Color(0xFFE74C3C), // K = North, red
+      cardinalColor,
+      cardinalColor,
+      cardinalColor,
     ];
     for (int i = 0; i < 4; i++) {
       final angle = i * 90 * (math.pi / 180);
@@ -282,5 +290,7 @@ class _CompassPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CompassPainter oldDelegate) =>
+      oldDelegate.ringColor != ringColor ||
+      oldDelegate.cardinalColor != cardinalColor;
 }

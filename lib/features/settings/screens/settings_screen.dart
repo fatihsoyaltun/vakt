@@ -43,14 +43,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           // APPEARANCE
           Text('Görünüm',
-              style: AppTextStyles.title.copyWith(color: AppColors.gold)),
+              style: AppTextStyles.titleOf(context).copyWith(color: AppColors.gold)),
           const SizedBox(height: 8),
           Card(
-            color: AppColors.cardDark,
+            color: AppColors.card(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: SwitchListTile(
-              title: Text('Karanlık Mod', style: AppTextStyles.body),
+              title: Text('Karanlık Mod', style: AppTextStyles.bodyOf(context)),
               value: isDark,
               activeTrackColor: AppColors.emerald,
               onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
@@ -61,17 +61,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // NOTIFICATIONS
           Text('Bildirimler',
-              style: AppTextStyles.title.copyWith(color: AppColors.gold)),
+              style: AppTextStyles.titleOf(context).copyWith(color: AppColors.gold)),
           const SizedBox(height: 8),
           Card(
-            color: AppColors.cardDark,
+            color: AppColors.card(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
                 SwitchListTile(
                   title: Text('İftara 30 dakika kala',
-                      style: AppTextStyles.body),
+                      style: AppTextStyles.bodyOf(context)),
                   value: _notifyIftar,
                   activeTrackColor: AppColors.emerald,
                   onChanged: (val) {
@@ -83,7 +83,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const Divider(height: 1, indent: 16, endIndent: 16),
                 SwitchListTile(
                   title: Text('Sahura 45 dakika kala',
-                      style: AppTextStyles.body),
+                      style: AppTextStyles.bodyOf(context)),
                   value: _notifySahur,
                   activeTrackColor: AppColors.emerald,
                   onChanged: (val) {
@@ -100,10 +100,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // LOCATION
           Text('Konum',
-              style: AppTextStyles.title.copyWith(color: AppColors.gold)),
+              style: AppTextStyles.titleOf(context).copyWith(color: AppColors.gold)),
           const SizedBox(height: 8),
           Card(
-            color: AppColors.cardDark,
+            color: AppColors.card(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
@@ -124,11 +124,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               location.isLoading
                                   ? 'Yükleniyor...'
                                   : location.cityName,
-                              style: AppTextStyles.body,
+                              style: AppTextStyles.bodyOf(context),
                             ),
                             Text(
                               '${location.lat.toStringAsFixed(4)}, ${location.lng.toStringAsFixed(4)}',
-                              style: AppTextStyles.caption,
+                              style: AppTextStyles.captionOf(context),
                             ),
                           ],
                         ),
@@ -169,21 +169,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // ABOUT
           Text('Hakkında',
-              style: AppTextStyles.title.copyWith(color: AppColors.gold)),
+              style: AppTextStyles.titleOf(context).copyWith(color: AppColors.gold)),
           const SizedBox(height: 8),
           Card(
-            color: AppColors.cardDark,
+            color: AppColors.card(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _aboutRow('Uygulama', 'VAKT'),
+                  _aboutRow(context, 'Uygulama', 'VAKT'),
                   const SizedBox(height: 8),
-                  _aboutRow('Versiyon', 'v0.1.0'),
+                  _aboutRow(context, 'Versiyon', 'v0.1.0'),
                   const SizedBox(height: 8),
-                  _aboutRow('Geliştirici', 'Fatih Soyaltun'),
+                  _aboutRow(context, 'Geliştirici', 'Fatih Soyaltun'),
                 ],
               ),
             ),
@@ -195,12 +195,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _aboutRow(String label, String value) {
+  Widget _aboutRow(BuildContext context, String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.body),
-        Text(value, style: AppTextStyles.caption),
+        Text(label, style: AppTextStyles.bodyOf(context)),
+        Text(value, style: AppTextStyles.captionOf(context)),
       ],
     );
   }

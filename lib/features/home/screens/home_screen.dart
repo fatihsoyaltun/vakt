@@ -39,9 +39,9 @@ class HomeScreen extends ConsumerWidget {
             if (location.isLoading)
               const Center(child: CircularProgressIndicator())
             else
-              Text(location.cityName, style: AppTextStyles.headline),
+              Text(location.cityName, style: AppTextStyles.headlineOf(context)),
             const SizedBox(height: 4),
-            Text(_buildDateString(), style: AppTextStyles.caption),
+            Text(_buildDateString(), style: AppTextStyles.captionOf(context)),
 
             const SizedBox(height: 24),
 
