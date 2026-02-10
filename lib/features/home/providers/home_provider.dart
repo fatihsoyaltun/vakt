@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../data/models/verse_model.dart';
 import '../../../services/location_service.dart';
 import '../../../services/prayer_time_service.dart';
 import '../../../services/storage_service.dart';
+import '../../../services/verse_service.dart';
 
 // --- State Classes ---
 
@@ -190,4 +192,12 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
   return ThemeModeNotifier(StorageService());
+});
+
+// --- Verse ---
+
+final verseProvider = FutureProvider<DailyVerse>((ref) async {
+  final service = VerseService();
+  final verses = await service.loadVerses();
+  return service.getTodayVerse(verses);
 });
