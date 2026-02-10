@@ -51,7 +51,7 @@ class DailyVerseCard extends ConsumerWidget {
                         style: AppTextStyles.title
                             .copyWith(color: AppColors.gold),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Text(
@@ -63,16 +63,18 @@ class DailyVerseCard extends ConsumerWidget {
                           ),
                           textAlign: TextAlign.right,
                           textDirection: TextDirection.rtl,
-                          maxLines: 4,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         verse.turkish,
                         style: AppTextStyles.body,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
                         style: AppTextStyles.caption,
