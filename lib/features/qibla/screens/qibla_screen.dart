@@ -125,18 +125,24 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     // Still waiting for compass data and timeout hasn't fired yet.
     if (_heading == null && !_compassFailed) {
       return SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
-            const Spacer(),
-            const CircularProgressIndicator(color: AppColors.emerald),
-            const SizedBox(height: 16),
-            Text('Pusula başlatılıyor…',
-                style: AppTextStyles.captionOf(context)),
-            const Spacer(),
-          ],
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 16),
+              Text('Kıble Yönü',
+                  style: AppTextStyles.headlineOf(context),
+                  textAlign: TextAlign.center),
+              const Spacer(),
+              const CircularProgressIndicator(color: AppColors.emerald),
+              const SizedBox(height: 16),
+              Text('Pusula başlatılıyor…',
+                  style: AppTextStyles.captionOf(context),
+                  textAlign: TextAlign.center),
+              const Spacer(),
+            ],
+          ),
         ),
       );
     }
@@ -171,15 +177,20 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
 
     final arrowColor = isAligned ? const Color(0xFF4CD964) : AppColors.gold;
 
-    return Column(
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 16),
-        Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
+        Text('Kıble Yönü',
+            style: AppTextStyles.headlineOf(context),
+            textAlign: TextAlign.center),
         const Spacer(),
 
         // ── Compass ──
-        SizedBox(
+        Center(
+          child: SizedBox(
           width: 280,
           height: 280,
           child: Stack(
@@ -227,6 +238,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             ],
           ),
         ),
+        ),
 
         const SizedBox(height: 28),
 
@@ -237,6 +249,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             style: AppTextStyles.titleOf(context).copyWith(
                   color: const Color(0xFF4CD964),
                 ),
+            textAlign: TextAlign.center,
           )
         else
           Text(
@@ -244,6 +257,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
                 ? '${diff.abs().round()}° sağa dönün →'
                 : '← ${diff.abs().round()}° sola dönün',
             style: AppTextStyles.bodyOf(context),
+            textAlign: TextAlign.center,
           ),
 
         const SizedBox(height: 24),
@@ -252,11 +266,13 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
         Text(
           '${qiblaAngle.toStringAsFixed(1)}°',
           style: AppTextStyles.titleOf(context),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
         Text(
           _cardinalDirection(qiblaAngle),
           style: AppTextStyles.captionOf(context),
+          textAlign: TextAlign.center,
         ),
 
         const Spacer(),
@@ -273,6 +289,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           ),
         ),
       ],
+    ),
     );
   }
 

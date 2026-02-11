@@ -23,13 +23,29 @@ class NotificationService {
     await _plugin.initialize(settings);
 
     // Request iOS permissions explicitly
-    final iOSPlugin = _plugin.resolvePlatformSpecificImplementation<
+    final iOSImpl = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
-    if (iOSPlugin != null) {
-      await iOSPlugin.requestPermissions(
-          alert: true, badge: true, sound: true);
+    if (iOSImpl != null) {
+      final granted = await iOSImpl.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
       // ignore: avoid_print
-      print('iOS notification permission requested');
+      print('iOS notification permission granted: $granted');
+    }
+
+    // Also try macOS plugin for Darwin platforms
+    final macOSImpl = _plugin.resolvePlatformSpecificImplementation<
+        MacOSFlutterLocalNotificationsPlugin>();
+    if (macOSImpl != null) {
+      final granted = await macOSImpl.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      // ignore: avoid_print
+      print('macOS notification permission granted: $granted');
     }
   }
 
