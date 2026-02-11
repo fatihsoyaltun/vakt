@@ -42,7 +42,7 @@ class DailyVerseCard extends ConsumerWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +64,7 @@ class DailyVerseCard extends ConsumerWidget {
                           ),
                           textAlign: TextAlign.right,
                           textDirection: TextDirection.rtl,
-                          maxLines: 2,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -72,10 +72,8 @@ class DailyVerseCard extends ConsumerWidget {
                       Text(
                         verse.turkish,
                         style: AppTextStyles.bodyOf(context),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
                         '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
                         style: AppTextStyles.captionOf(context),
