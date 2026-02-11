@@ -126,6 +126,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     if (_heading == null && !_compassFailed) {
       return SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
             Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
@@ -171,6 +172,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     final arrowColor = isAligned ? const Color(0xFF4CD964) : AppColors.gold;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 16),
         Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
