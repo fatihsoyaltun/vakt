@@ -59,19 +59,17 @@ class _MainShell extends StatefulWidget {
 class _MainShellState extends State<_MainShell> {
   int _currentIndex = 0;
 
-  final _screens = const [
-    HomeScreen(),
-    TasbihScreen(),
-    QiblaScreen(),
-    SettingsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: [
+          const HomeScreen(),
+          const TasbihScreen(),
+          QiblaScreen(isActive: _currentIndex == 2),
+          const SettingsScreen(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

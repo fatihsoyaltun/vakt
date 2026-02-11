@@ -29,7 +29,9 @@ double _calculateQiblaBearing(double lat, double lng) {
 }
 
 class QiblaScreen extends ConsumerStatefulWidget {
-  const QiblaScreen({super.key});
+  final bool isActive;
+
+  const QiblaScreen({super.key, this.isActive = true});
 
   @override
   ConsumerState<QiblaScreen> createState() => _QiblaScreenState();
@@ -90,6 +92,25 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   @override
+  void didUpdateWidget(covariant QiblaScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      // Becoming inactive — pause compass stream and stop animations.
+      _compassSub?.pause();
+      _pulseController.stop();
+      _pulseController.value = 1.0;
+      _hapticFired = false;
+    } else if (!oldWidget.isActive && widget.isActive) {
+      // Becoming active — resume compass stream.
+      if (_compassSub != null && _compassSub!.isPaused) {
+        _compassSub!.resume();
+      } else if (_compassSub == null && !_compassFailed) {
+        _initCompass();
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _compassSub?.cancel();
     _pulseController.dispose();
@@ -106,6 +127,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   void _handleAlignment(bool isAligned) {
+    if (!widget.isActive) return;
     if (isAligned && !_hapticFired) {
       HapticFeedback.heavyImpact();
       _hapticFired = true;
