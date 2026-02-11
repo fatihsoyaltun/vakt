@@ -1,14 +1,32 @@
+import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_qiblah/flutter_qiblah.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../home/providers/home_provider.dart';
+
+// Kaaba coordinates
+const double _kaabaLat = 21.4225;
+const double _kaabaLng = 39.8262;
+
+/// Calculate qibla bearing from [lat],[lng] to the Kaaba using the atan2 formula.
+double _calculateQiblaBearing(double lat, double lng) {
+  final phi1 = lat * (math.pi / 180);
+  final phi2 = _kaabaLat * (math.pi / 180);
+  final dLambda = (_kaabaLng - lng) * (math.pi / 180);
+
+  final y = math.sin(dLambda);
+  final x = math.cos(phi1) * math.tan(phi2) -
+      math.sin(phi1) * math.cos(dLambda);
+
+  final bearing = math.atan2(y, x) * (180 / math.pi);
+  return (bearing + 360) % 360;
+}
 
 class QiblaScreen extends ConsumerStatefulWidget {
   const QiblaScreen({super.key});
@@ -19,45 +37,63 @@ class QiblaScreen extends ConsumerStatefulWidget {
 
 class _QiblaScreenState extends ConsumerState<QiblaScreen>
     with SingleTickerProviderStateMixin {
-  bool? _sensorAvailable;
-  bool _wasAligned = false;
   late final AnimationController _pulseController;
+
+  StreamSubscription<CompassEvent>? _compassSub;
+  double? _heading;
+  bool _compassFailed = false;
+  bool _hapticFired = false;
 
   @override
   void initState() {
     super.initState();
-    _checkSensor();
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
       lowerBound: 0.9,
       upperBound: 1.1,
     )..value = 1.0;
+    _initCompass();
+  }
+
+  Future<void> _initCompass() async {
+    // Start a 3-second timeout; if no data arrives, fall back to static.
+    final timeout = Timer(const Duration(seconds: 3), () {
+      if (_heading == null && mounted) {
+        setState(() => _compassFailed = true);
+      }
+    });
+
+    try {
+      _compassSub = FlutterCompass.events?.listen(
+        (event) {
+          timeout.cancel();
+          if (mounted) {
+            setState(() => _heading = event.heading);
+          }
+        },
+        onError: (_) {
+          timeout.cancel();
+          if (mounted) setState(() => _compassFailed = true);
+        },
+      );
+
+      // If FlutterCompass.events is null (no sensor), fail immediately.
+      if (_compassSub == null) {
+        timeout.cancel();
+        if (mounted) setState(() => _compassFailed = true);
+      }
+    } catch (_) {
+      timeout.cancel();
+      if (mounted) setState(() => _compassFailed = true);
+    }
   }
 
   @override
   void dispose() {
+    _compassSub?.cancel();
     _pulseController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkSensor() async {
-    final supported = await FlutterQiblah.androidDeviceSensorSupport();
-    if (mounted) {
-      setState(() => _sensorAvailable = supported ?? true);
-    }
-  }
-
-  String _cardinalDirection(double degree) {
-    final d = degree % 360;
-    if (d >= 337.5 || d < 22.5) return 'Kuzey';
-    if (d < 67.5) return 'Kuzeydoğu';
-    if (d < 112.5) return 'Doğu';
-    if (d < 157.5) return 'Güneydoğu';
-    if (d < 202.5) return 'Güney';
-    if (d < 247.5) return 'Güneybatı';
-    if (d < 292.5) return 'Batı';
-    return 'Kuzeybatı';
   }
 
   /// Signed difference in degrees (-180..180).
@@ -69,55 +105,51 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     return diff;
   }
 
-  void _onAlignmentChanged(bool isAligned) {
-    if (isAligned && !_wasAligned) {
+  void _handleAlignment(bool isAligned) {
+    if (isAligned && !_hapticFired) {
       HapticFeedback.heavyImpact();
+      _hapticFired = true;
       _pulseController.repeat(reverse: true);
-    } else if (!isAligned && _wasAligned) {
+    } else if (!isAligned && _hapticFired) {
+      _hapticFired = false;
       _pulseController.stop();
       _pulseController.value = 1.0;
     }
-    _wasAligned = isAligned;
   }
 
   @override
   Widget build(BuildContext context) {
     final location = ref.watch(locationProvider);
-    final qiblaAngle =
-        Qibla(Coordinates(location.lat, location.lng)).direction;
+    final qiblaAngle = _calculateQiblaBearing(location.lat, location.lng);
+
+    // Still waiting for compass data and timeout hasn't fired yet.
+    if (_heading == null && !_compassFailed) {
+      return SafeArea(
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            Text('Kıble Yönü', style: AppTextStyles.headlineOf(context)),
+            const Spacer(),
+            const CircularProgressIndicator(color: AppColors.emerald),
+            const SizedBox(height: 16),
+            Text('Pusula başlatılıyor…',
+                style: AppTextStyles.captionOf(context)),
+            const Spacer(),
+          ],
+        ),
+      );
+    }
+
+    final heading = _heading ?? 0.0;
+    final isLive = !_compassFailed;
 
     return SafeArea(
-      child: _sensorAvailable == null
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.emerald),
-            )
-          : _sensorAvailable!
-              ? _buildLive(context, qiblaAngle)
-              : _buildContent(
-                  context: context,
-                  heading: 0,
-                  qiblaAngle: qiblaAngle,
-                  isLive: false,
-                ),
-    );
-  }
-
-  Widget _buildLive(BuildContext context, double qiblaAngle) {
-    return StreamBuilder<QiblahDirection>(
-      stream: FlutterQiblah.qiblahStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.emerald),
-          );
-        }
-        return _buildContent(
-          context: context,
-          heading: snapshot.data!.direction,
-          qiblaAngle: qiblaAngle,
-          isLive: true,
-        );
-      },
+      child: _buildContent(
+        context: context,
+        heading: heading,
+        qiblaAngle: qiblaAngle,
+        isLive: isLive,
+      ),
     );
   }
 
@@ -132,7 +164,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
 
     if (isLive) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _onAlignmentChanged(isAligned);
+        _handleAlignment(isAligned);
       });
     }
 
@@ -206,8 +238,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           )
         else
           Text(
-            '${diff.abs().round()}° '
-            '${diff > 0 ? 'sağa dönün' : 'sola dönün'}',
+            diff > 0
+                ? '${diff.abs().round()}° sağa dönün →'
+                : '← ${diff.abs().round()}° sola dönün',
             style: AppTextStyles.bodyOf(context),
           ),
 
@@ -232,13 +265,25 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           child: Text(
             isLive
                 ? 'Cihazınızı düz tutun'
-                : 'Pusula sensörü bulunamadı — statik yön gösteriliyor',
+                : 'Pusula verisi alınamadı — statik yön gösteriliyor',
             style: AppTextStyles.captionOf(context),
             textAlign: TextAlign.center,
           ),
         ),
       ],
     );
+  }
+
+  String _cardinalDirection(double degree) {
+    final d = degree % 360;
+    if (d >= 337.5 || d < 22.5) return 'Kuzey';
+    if (d < 67.5) return 'Kuzeydoğu';
+    if (d < 112.5) return 'Doğu';
+    if (d < 157.5) return 'Güneydoğu';
+    if (d < 202.5) return 'Güney';
+    if (d < 247.5) return 'Güneybatı';
+    if (d < 292.5) return 'Batı';
+    return 'Kuzeybatı';
   }
 
   Widget _buildQiblaIndicator(Color color) {
@@ -269,7 +314,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
 }
 
 // ---------------------------------------------------------------------------
-// Compass painter – gradient ring, tick marks, cardinal labels
+// Compass painter – gradient ring, tick marks, cardinal labels (K/G/D/B)
 // ---------------------------------------------------------------------------
 
 class _CompassPainter extends CustomPainter {

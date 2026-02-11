@@ -52,7 +52,7 @@ dependencies:
   timezone: ^0.10.1
 
   # Kıble
-  flutter_qiblah: ^3.0.5
+  flutter_compass: ^0.8.1
 
   # Hicri Takvim
   hijri: ^3.0.0
