@@ -22,11 +22,12 @@ class NotificationService {
     const settings = InitializationSettings(android: android, iOS: iOS);
     await _plugin.initialize(settings);
 
-    // Request iOS permissions
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
+    // Request iOS permissions explicitly
+    final iOSPlugin = _plugin.resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+    await iOSPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+    // ignore: avoid_print
+    print('Notification permission requested');
   }
 
   static Future<void> scheduleIftarNotification(

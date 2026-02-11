@@ -205,6 +205,8 @@ class _NotificationPage extends StatelessWidget {
   const _NotificationPage({required this.onFinish});
 
   Future<void> _requestNotification() async {
+    // ignore: avoid_print
+    print('Notification permission button pressed');
     await NotificationService.init();
     onFinish();
   }
