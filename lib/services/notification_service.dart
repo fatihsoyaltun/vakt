@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -22,7 +24,30 @@ class NotificationService {
     const settings = InitializationSettings(android: android, iOS: iOS);
     await _plugin.initialize(settings);
 
-    // Request iOS permissions explicitly
+    if (Platform.isAndroid) {
+      await _requestAndroidPermissions();
+    } else if (Platform.isIOS) {
+      await _requestIOSPermissions();
+    }
+  }
+
+  static Future<void> _requestAndroidPermissions() async {
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImpl == null) return;
+
+    // Required on Android 13+ (API 33)
+    final notifGranted = await androidImpl.requestNotificationsPermission();
+    // ignore: avoid_print
+    print('Android POST_NOTIFICATIONS permission granted: $notifGranted');
+
+    // Required for exact alarm scheduling on Android 12+ (API 31)
+    final alarmGranted = await androidImpl.requestExactAlarmsPermission();
+    // ignore: avoid_print
+    print('Android SCHEDULE_EXACT_ALARM permission granted: $alarmGranted');
+  }
+
+  static Future<void> _requestIOSPermissions() async {
     final iOSImpl = _plugin.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
     if (iOSImpl != null) {
@@ -33,19 +58,6 @@ class NotificationService {
       );
       // ignore: avoid_print
       print('iOS notification permission granted: $granted');
-    }
-
-    // Also try macOS plugin for Darwin platforms
-    final macOSImpl = _plugin.resolvePlatformSpecificImplementation<
-        MacOSFlutterLocalNotificationsPlugin>();
-    if (macOSImpl != null) {
-      final granted = await macOSImpl.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      // ignore: avoid_print
-      print('macOS notification permission granted: $granted');
     }
   }
 
@@ -70,11 +82,15 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
@@ -99,11 +115,15 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
