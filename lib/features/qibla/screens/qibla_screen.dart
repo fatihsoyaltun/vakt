@@ -15,17 +15,22 @@ const double _kaabaLat = 21.4225;
 const double _kaabaLng = 39.8262;
 
 /// Calculate qibla bearing from [lat],[lng] to the Kaaba using the atan2 formula.
-double _calculateQiblaBearing(double lat, double lng) {
-  final phi1 = lat * (math.pi / 180);
-  final phi2 = _kaabaLat * (math.pi / 180);
-  final dLambda = (_kaabaLng - lng) * (math.pi / 180);
+/// For Istanbul (41.0082°N, 28.9784°E) result should be ≈ 151–153° (Southeast).
+double _calculateQiblaDirection(double lat, double lng) {
+  final userLat = lat * (math.pi / 180);
+  final kaabaLat = _kaabaLat * (math.pi / 180);
+  final deltaLng = (_kaabaLng - lng) * (math.pi / 180);
 
-  final y = math.sin(dLambda);
-  final x = math.cos(phi1) * math.tan(phi2) -
-      math.sin(phi1) * math.cos(dLambda);
+  final y = math.sin(deltaLng);
+  final x = math.cos(userLat) * math.tan(kaabaLat) -
+      math.sin(userLat) * math.cos(deltaLng);
 
-  final bearing = math.atan2(y, x) * (180 / math.pi);
-  return (bearing + 360) % 360;
+  var bearing = math.atan2(y, x) * (180 / math.pi);
+  bearing = (bearing + 360) % 360;
+
+  // ignore: avoid_print
+  print('Qibla bearing: $bearing degrees (lat=$lat, lng=$lng)');
+  return bearing;
 }
 
 class QiblaScreen extends ConsumerStatefulWidget {
@@ -70,8 +75,11 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       _compassSub = FlutterCompass.events?.listen(
         (event) {
           timeout.cancel();
-          if (mounted) {
-            setState(() => _heading = event.heading);
+          final h = event.heading;
+          // ignore: avoid_print
+          print('Device heading: $h');
+          if (mounted && h != null) {
+            setState(() => _heading = h);
           }
         },
         onError: (_) {
@@ -118,9 +126,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }
 
   /// Signed difference in degrees (-180..180).
-  /// Positive = qibla is clockwise from heading.
+  /// Positive = qibla is clockwise from current heading.
   double _qiblaDiff(double heading, double qiblaAngle) {
-    double diff = (qiblaAngle - heading) % 360;
+    var diff = qiblaAngle - heading;
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
     return diff;
@@ -142,7 +150,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   @override
   Widget build(BuildContext context) {
     final location = ref.watch(locationProvider);
-    final qiblaAngle = _calculateQiblaBearing(location.lat, location.lng);
+    final qiblaAngle = _calculateQiblaDirection(location.lat, location.lng);
 
     // Still waiting for compass data and timeout hasn't fired yet.
     if (_heading == null && !_compassFailed) {
@@ -190,6 +198,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   }) {
     final diff = _qiblaDiff(heading, qiblaAngle);
     final isAligned = diff.abs() <= 5;
+
+    // ignore: avoid_print
+    print('Device heading: $heading | Qibla: $qiblaAngle | Diff: $diff');
 
     if (isLive) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
