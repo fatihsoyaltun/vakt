@@ -88,12 +88,12 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#0A1128"
-  image: assets/icon/app_icon.png
+  image: assets/icon/splash_icon.png
   android: true
   ios: true
   android_12:
     color: "#0A1128"
-    image: assets/icon/app_icon.png
+    image: assets/icon/splash_icon.png
 
 # The following section is specific to Flutter packages.
 flutter:

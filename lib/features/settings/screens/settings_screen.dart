@@ -183,7 +183,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 8),
                   _aboutRow(context, 'Versiyon', 'v0.1.0'),
                   const SizedBox(height: 8),
-                  _aboutRow(context, 'Geliştirici', 'Fatih Soyaltun'),
+                  _aboutRow(context, 'Geliştirici', 'Fatih Soyaltun & Ayça Dağdemir'),
                 ],
               ),
             ),

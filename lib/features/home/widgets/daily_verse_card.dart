@@ -24,6 +24,7 @@ class DailyVerseCard extends ConsumerWidget {
       error: (_, _) => const SizedBox.shrink(),
       data: (verse) => Card(
         color: AppColors.card(context),
+        clipBehavior: Clip.hardEdge,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -42,7 +43,7 @@ class DailyVerseCard extends ConsumerWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +53,7 @@ class DailyVerseCard extends ConsumerWidget {
                         style: AppTextStyles.titleOf(context)
                             .copyWith(color: AppColors.gold),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Text(
@@ -64,16 +65,18 @@ class DailyVerseCard extends ConsumerWidget {
                           ),
                           textAlign: TextAlign.right,
                           textDirection: TextDirection.rtl,
-                          maxLines: 3,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         verse.turkish,
                         style: AppTextStyles.bodyOf(context),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
                         style: AppTextStyles.captionOf(context),
