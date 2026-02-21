@@ -9,16 +9,40 @@ class LocationService {
   Future<bool> checkAndRequestPermission() async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      // ignore: avoid_print
+      print('Location services enabled: $serviceEnabled');
       if (!serviceEnabled) return false;
 
       var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+      // ignore: avoid_print
+      print('Location permission (initial): $permission');
+
+      if (permission == LocationPermission.deniedForever) {
+        // ignore: avoid_print
+        print('Location permission denied forever — cannot request');
+        return false;
       }
 
-      return permission == LocationPermission.whileInUse ||
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        // ignore: avoid_print
+        print('Location permission (after request): $permission');
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        // ignore: avoid_print
+        print('Location permission denied forever after request');
+        return false;
+      }
+
+      final granted = permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always;
+      // ignore: avoid_print
+      print('Location permission granted: $granted');
+      return granted;
     } catch (e) {
+      // ignore: avoid_print
+      print('Permission check error: $e');
       return false;
     }
   }
@@ -27,6 +51,8 @@ class LocationService {
     try {
       final granted = await checkAndRequestPermission();
       if (!granted) {
+        // ignore: avoid_print
+        print('GPS permission not granted — returning Istanbul defaults');
         return Position(
           latitude: _defaultLatitude,
           longitude: _defaultLongitude,
@@ -41,12 +67,20 @@ class LocationService {
         );
       }
 
-      return await Geolocator.getCurrentPosition(
+      // ignore: avoid_print
+      print('Attempting GPS getCurrentPosition...');
+      final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
         ),
       );
+      // ignore: avoid_print
+      print('GPS returned: lat=${position.latitude}, lng=${position.longitude}');
+      return position;
     } catch (e) {
+      // ignore: avoid_print
+      print('GPS FAILED: $e');
       return Position(
         latitude: _defaultLatitude,
         longitude: _defaultLongitude,
@@ -66,12 +100,19 @@ class LocationService {
     try {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
-        return placemarks.first.administrativeArea ??
+        final cityName = placemarks.first.administrativeArea ??
             placemarks.first.locality ??
             _defaultCity;
+        // ignore: avoid_print
+        print('City resolved: $cityName');
+        return cityName;
       }
+      // ignore: avoid_print
+      print('City resolved: $_defaultCity (no placemarks)');
       return _defaultCity;
     } catch (e) {
+      // ignore: avoid_print
+      print('Geocoding error: $e — returning $_defaultCity');
       return _defaultCity;
     }
   }

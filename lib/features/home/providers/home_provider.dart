@@ -79,6 +79,8 @@ class LocationNotifier extends StateNotifier<LocationState> {
   }
 
   Future<void> _init() async {
+    // ignore: avoid_print
+    print('_init: loading cache');
     try {
       final cached = _storageService.getLastLocation();
       if (cached != null) {
@@ -88,15 +90,24 @@ class LocationNotifier extends StateNotifier<LocationState> {
           cityName: cached['cityName'] as String,
           isLoading: true,
         );
+        // ignore: avoid_print
+        print('_init: cache loaded (${state.cityName} ${state.lat}, ${state.lng})');
+      } else {
+        // ignore: avoid_print
+        print('_init: no cache found, using defaults');
       }
     } catch (e) {
       // ignore: avoid_print
       print('Location cache read error: $e');
     }
+    // ignore: avoid_print
+    print('_init: calling fetchLocation for fresh GPS');
     await fetchLocation();
   }
 
   Future<void> fetchLocation() async {
+    // ignore: avoid_print
+    print('fetchLocation called');
     try {
       state = state.copyWith(isLoading: true);
       final position = await _locationService.getCurrentPosition();
@@ -104,12 +115,16 @@ class LocationNotifier extends StateNotifier<LocationState> {
         position.latitude,
         position.longitude,
       );
+      // ignore: avoid_print
+      print('Location result: lat=${position.latitude}, lng=${position.longitude}, city=$cityName');
       state = LocationState(
         lat: position.latitude,
         lng: position.longitude,
         cityName: cityName,
         isLoading: false,
       );
+      // ignore: avoid_print
+      print('Saving to cache and updating state');
       await _storageService.saveLastLocation(
         position.latitude,
         position.longitude,
