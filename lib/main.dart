@@ -9,5 +9,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.init();
   await NotificationService.init();
+
+  // Schedule notifications on startup using cached location
+  final storage = StorageService();
+  final cached = storage.getLastLocation();
+  final lat = (cached?['lat'] as num?)?.toDouble() ?? 41.0082;
+  final lng = (cached?['lng'] as num?)?.toDouble() ?? 28.9784;
+  await NotificationService.scheduleDailyNotifications(lat, lng);
+  // ignore: avoid_print
+  print('Notifications scheduled on app startup (lat=$lat, lng=$lng)');
+
   runApp(const ProviderScope(child: VaktApp()));
 }
