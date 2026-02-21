@@ -69,29 +69,38 @@ class NotificationService {
     if (scheduleTime.isBefore(DateTime.now())) return;
 
     final tzTime = tz.TZDateTime.from(scheduleTime, tz.local);
-    await _plugin.zonedSchedule(
-      _iftarId,
-      'VAKT',
-      'İftara $minutesBefore dakika kaldı. Hazırlıklarınızı yapın.',
-      tzTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'vakt_iftar',
-          'İftar Bildirimi',
-          channelDescription: 'İftar vakti hatırlatması',
-          importance: Importance.high,
-          priority: Priority.high,
+    // ignore: avoid_print
+    print('Scheduling iftar notification for: $iftarTime (alert at $tzTime)');
+    try {
+      await _plugin.zonedSchedule(
+        _iftarId,
+        'VAKT',
+        'İftara $minutesBefore dakika kaldı. Hazırlıklarınızı yapın.',
+        tzTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'vakt_iftar',
+            'İftar Bildirimi',
+            channelDescription: 'İftar vakti hatırlatması',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      // ignore: avoid_print
+      print('Iftar notification scheduled successfully');
+    } catch (e) {
+      // ignore: avoid_print
+      print('NOTIFICATION ERROR (iftar): $e');
+    }
   }
 
   static Future<void> scheduleSahurNotification(
@@ -102,33 +111,47 @@ class NotificationService {
     if (scheduleTime.isBefore(DateTime.now())) return;
 
     final tzTime = tz.TZDateTime.from(scheduleTime, tz.local);
-    await _plugin.zonedSchedule(
-      _sahurId,
-      'VAKT',
-      'Sahura $minutesBefore dakika kaldı. Uyanma vakti.',
-      tzTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'vakt_sahur',
-          'Sahur Bildirimi',
-          channelDescription: 'Sahur vakti hatırlatması',
-          importance: Importance.high,
-          priority: Priority.high,
+    // ignore: avoid_print
+    print('Scheduling sahur notification for: $sahurTime (alert at $tzTime)');
+    try {
+      await _plugin.zonedSchedule(
+        _sahurId,
+        'VAKT',
+        'Sahura $minutesBefore dakika kaldı. Uyanma vakti.',
+        tzTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'vakt_sahur',
+            'Sahur Bildirimi',
+            channelDescription: 'Sahur vakti hatırlatması',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      // ignore: avoid_print
+      print('Sahur notification scheduled successfully');
+    } catch (e) {
+      // ignore: avoid_print
+      print('NOTIFICATION ERROR (sahur): $e');
+    }
   }
 
   static Future<void> scheduleDailyNotifications(
       double lat, double lng) async {
+    // ignore: avoid_print
+    print('=== SCHEDULING NOTIFICATIONS ===');
+    // ignore: avoid_print
+    print('Current time: ${DateTime.now()}');
+
     await cancelAll();
 
     final storage = StorageService();
@@ -138,6 +161,9 @@ class NotificationService {
 
     final notifyIftar = storage.getSetting<bool>('notify_iftar') ?? true;
     final notifySahur = storage.getSetting<bool>('notify_sahur') ?? true;
+
+    // ignore: avoid_print
+    print('Iftar enabled: $notifyIftar | Sahur enabled: $notifySahur');
 
     if (notifyIftar) {
       final maghrib = times['maghrib'];

@@ -75,6 +75,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   value: _notifyIftar,
                   activeTrackColor: AppColors.emerald,
                   onChanged: (val) {
+                    // ignore: avoid_print
+                    print('Iftar notification toggle: $val');
                     setState(() => _notifyIftar = val);
                     _storage.saveSetting('notify_iftar', val);
                     _rescheduleNotifications();
@@ -87,6 +89,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   value: _notifySahur,
                   activeTrackColor: AppColors.emerald,
                   onChanged: (val) {
+                    // ignore: avoid_print
+                    print('Sahur notification toggle: $val');
                     setState(() => _notifySahur = val);
                     _storage.saveSetting('notify_sahur', val);
                     _rescheduleNotifications();

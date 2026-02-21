@@ -52,7 +52,7 @@ class _DailyVerseCardState extends ConsumerState<DailyVerseCard> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,14 +76,14 @@ class _DailyVerseCardState extends ConsumerState<DailyVerseCard> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Align(
                           alignment: Alignment.centerRight,
                           child: AnimatedCrossFade(
                             firstChild: Text(
                               verse.arabic,
                               style: GoogleFonts.amiriQuran(
-                                fontSize: 18,
+                                fontSize: 16,
                                 color: AppColors.text(context),
                                 height: 1.8,
                               ),
@@ -108,12 +108,12 @@ class _DailyVerseCardState extends ConsumerState<DailyVerseCard> {
                             duration: const Duration(milliseconds: 200),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         AnimatedCrossFade(
                           firstChild: Text(
                             verse.turkish,
                             style: AppTextStyles.bodyOf(context),
-                            maxLines: 3,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           secondChild: Text(
@@ -125,10 +125,11 @@ class _DailyVerseCardState extends ConsumerState<DailyVerseCard> {
                               : CrossFadeState.showFirst,
                           duration: const Duration(milliseconds: 200),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           '${verse.surahTr} Suresi, Ayet ${verse.ayah} • ${verse.source}',
-                          style: AppTextStyles.captionOf(context),
+                          style: AppTextStyles.captionOf(context)
+                              .copyWith(fontSize: 11),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
