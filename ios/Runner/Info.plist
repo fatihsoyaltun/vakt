@@ -47,5 +47,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyacımız var.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyacımız var.</string>
 	</dict>
 </plist>
