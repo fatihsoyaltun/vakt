@@ -79,41 +79,52 @@ class LocationNotifier extends StateNotifier<LocationState> {
   }
 
   Future<void> _init() async {
-    final cached = _storageService.getLastLocation();
-    if (cached != null) {
-      state = LocationState(
-        lat: (cached['lat'] as num).toDouble(),
-        lng: (cached['lng'] as num).toDouble(),
-        cityName: cached['cityName'] as String,
-        isLoading: true,
-      );
+    try {
+      final cached = _storageService.getLastLocation();
+      if (cached != null) {
+        state = LocationState(
+          lat: (cached['lat'] as num).toDouble(),
+          lng: (cached['lng'] as num).toDouble(),
+          cityName: cached['cityName'] as String,
+          isLoading: true,
+        );
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Location cache read error: $e');
     }
     await fetchLocation();
   }
 
   Future<void> fetchLocation() async {
-    state = state.copyWith(isLoading: true);
-    final position = await _locationService.getCurrentPosition();
-    final cityName = await _locationService.getCityName(
-      position.latitude,
-      position.longitude,
-    );
-    state = LocationState(
-      lat: position.latitude,
-      lng: position.longitude,
-      cityName: cityName,
-      isLoading: false,
-    );
-    await _storageService.saveLastLocation(
-      position.latitude,
-      position.longitude,
-      cityName,
-    );
-    // Re-schedule notifications with fresh coordinates
-    NotificationService.scheduleDailyNotifications(
-      position.latitude,
-      position.longitude,
-    );
+    try {
+      state = state.copyWith(isLoading: true);
+      final position = await _locationService.getCurrentPosition();
+      final cityName = await _locationService.getCityName(
+        position.latitude,
+        position.longitude,
+      );
+      state = LocationState(
+        lat: position.latitude,
+        lng: position.longitude,
+        cityName: cityName,
+        isLoading: false,
+      );
+      await _storageService.saveLastLocation(
+        position.latitude,
+        position.longitude,
+        cityName,
+      );
+      // Re-schedule notifications with fresh coordinates
+      NotificationService.scheduleDailyNotifications(
+        position.latitude,
+        position.longitude,
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('Location fetch error: $e');
+      state = state.copyWith(isLoading: false);
+    }
   }
 }
 
