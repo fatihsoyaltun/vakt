@@ -75,10 +75,11 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
       _compassSub = FlutterCompass.events?.listen(
         (event) {
           timeout.cancel();
-          final h = event.heading;
-          // ignore: avoid_print
-          print('Device heading: $h');
-          if (mounted && h != null) {
+          final rawHeading = event.heading;
+          if (mounted && rawHeading != null) {
+            final h = (rawHeading + 360) % 360; // Always 0-360
+            // ignore: avoid_print
+            print('Device heading (raw=$rawHeading, normalized=$h)');
             setState(() => _heading = h);
           }
         },
