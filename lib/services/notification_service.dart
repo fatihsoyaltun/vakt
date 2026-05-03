@@ -22,7 +22,7 @@ class NotificationService {
       requestSoundPermission: true,
     );
     const settings = InitializationSettings(android: android, iOS: iOS);
-    
+
     // Hatanın çözümü: Parametre adı 'settings' olarak güncellendi.
     await _plugin.initialize(settings: settings);
 
@@ -34,8 +34,10 @@ class NotificationService {
   }
 
   static Future<void> _requestAndroidPermissions() async {
-    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (androidImpl == null) return;
 
     final notifGranted = await androidImpl.requestNotificationsPermission();
@@ -48,8 +50,10 @@ class NotificationService {
   }
 
   static Future<void> _requestIOSPermissions() async {
-    final iOSImpl = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final iOSImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (iOSImpl != null) {
       final granted = await iOSImpl.requestPermissions(
         alert: true,
@@ -84,6 +88,9 @@ class NotificationService {
             channelDescription: 'İftar vakti hatırlatması',
             importance: Importance.high,
             priority: Priority.high,
+            category: AndroidNotificationCategory
+                .alarm, // Important for battery overrides
+            audioAttributesUsage: AudioAttributesUsage.alarm,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -124,6 +131,9 @@ class NotificationService {
             channelDescription: 'Sahur vakti hatırlatması',
             importance: Importance.high,
             priority: Priority.high,
+            category: AndroidNotificationCategory
+                .alarm, // Important for battery overrides
+            audioAttributesUsage: AudioAttributesUsage.alarm,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -141,8 +151,7 @@ class NotificationService {
     }
   }
 
-  static Future<void> scheduleDailyNotifications(
-      double lat, double lng) async {
+  static Future<void> scheduleDailyNotifications(double lat, double lng) async {
     // ignore: avoid_print
     print('=== SCHEDULING NOTIFICATIONS ===');
     // ignore: avoid_print
@@ -162,17 +171,28 @@ class NotificationService {
     print('Iftar enabled: $notifyIftar | Sahur enabled: $notifySahur');
 
     if (notifyIftar) {
-      final maghrib = times['maghrib'];
+      var maghrib = times['maghrib'];
+      if (maghrib != null && maghrib.isBefore(now)) {
+        maghrib = prayerService.getDailyPrayerTimes(
+          lat,
+          lng,
+          now.add(const Duration(days: 1)),
+        )['maghrib'];
+      }
       if (maghrib != null) {
         await scheduleIftarNotification(maghrib);
       }
     }
 
     if (notifySahur) {
-      final tomorrow = now.add(const Duration(days: 1));
-      final tomorrowTimes =
-          prayerService.getDailyPrayerTimes(lat, lng, tomorrow);
-      final fajr = tomorrowTimes['fajr'];
+      var fajr = times['fajr'];
+      if (fajr != null && fajr.isBefore(now)) {
+        fajr = prayerService.getDailyPrayerTimes(
+          lat,
+          lng,
+          now.add(const Duration(days: 1)),
+        )['fajr'];
+      }
       if (fajr != null) {
         await scheduleSahurNotification(fajr);
       }

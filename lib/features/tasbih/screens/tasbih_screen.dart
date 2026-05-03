@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -167,7 +166,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                             children: [
                               Text(
                                 '$_count',
-                                style: GoogleFonts.poppins(
+                                style: TextStyle(fontFamily: 'Poppins', 
                                   fontSize: 64,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.text(context),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -7,62 +6,62 @@ class AppTextStyles {
   AppTextStyles._();
 
   // Dark variants
-  static TextStyle headline = GoogleFonts.poppins(
+  static TextStyle headline = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 28,
     fontWeight: FontWeight.bold,
     color: AppColors.white,
   );
 
-  static TextStyle title = GoogleFonts.poppins(
+  static TextStyle title = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.white,
   );
 
-  static TextStyle body = GoogleFonts.poppins(
+  static TextStyle body = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.white,
   );
 
-  static TextStyle caption = GoogleFonts.poppins(
+  static TextStyle caption = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
   );
 
-  static TextStyle countdown = GoogleFonts.poppins(
+  static TextStyle countdown = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 48,
     fontWeight: FontWeight.bold,
     color: AppColors.white,
   );
 
   // Light variants
-  static TextStyle headlineLight = GoogleFonts.poppins(
+  static TextStyle headlineLight = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 28,
     fontWeight: FontWeight.bold,
     color: AppColors.darkBackground,
   );
 
-  static TextStyle titleLight = GoogleFonts.poppins(
+  static TextStyle titleLight = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.darkBackground,
   );
 
-  static TextStyle bodyLight = GoogleFonts.poppins(
+  static TextStyle bodyLight = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 16,
     fontWeight: FontWeight.normal,
     color: AppColors.darkBackground,
   );
 
-  static TextStyle captionLight = GoogleFonts.poppins(
+  static TextStyle captionLight = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 12,
     fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
   );
 
-  static TextStyle countdownLight = GoogleFonts.poppins(
+  static TextStyle countdownLight = const TextStyle(fontFamily: 'Poppins', 
     fontSize: 48,
     fontWeight: FontWeight.bold,
     color: AppColors.darkBackground,

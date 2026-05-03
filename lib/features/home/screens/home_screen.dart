@@ -7,6 +7,7 @@ import '../providers/home_provider.dart';
 import '../widgets/countdown_widget.dart';
 import '../widgets/prayer_times_card.dart';
 import '../widgets/daily_verse_card.dart';
+import '../widgets/fasting_summary_panel.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -17,8 +18,18 @@ class HomeScreen extends ConsumerWidget {
     final hijriStr = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear}';
 
     const months = [
-      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık',
     ];
     final miladiStr = '${now.day} ${months[now.month - 1]} ${now.year}';
 
@@ -54,6 +65,11 @@ class HomeScreen extends ConsumerWidget {
             const PrayerTimesCard(),
 
             const SizedBox(height: 24),
+
+            // FASTING SUMMARY
+            const FastingSummaryPanel(),
+
+            const SizedBox(height: 16),
 
             // DAILY VERSE
             const DailyVerseCard(),

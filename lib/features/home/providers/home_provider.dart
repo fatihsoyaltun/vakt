@@ -69,12 +69,14 @@ class LocationNotifier extends StateNotifier<LocationState> {
   final StorageService _storageService;
 
   LocationNotifier(this._locationService, this._storageService)
-      : super(const LocationState(
+    : super(
+        const LocationState(
           lat: 41.0082,
           lng: 28.9784,
           cityName: 'Istanbul',
           isLoading: true,
-        )) {
+        ),
+      ) {
     _init();
   }
 
@@ -91,7 +93,9 @@ class LocationNotifier extends StateNotifier<LocationState> {
           isLoading: true,
         );
         // ignore: avoid_print
-        print('_init: cache loaded (${state.cityName} ${state.lat}, ${state.lng})');
+        print(
+          '_init: cache loaded (${state.cityName} ${state.lat}, ${state.lng})',
+        );
       } else {
         // ignore: avoid_print
         print('_init: no cache found, using defaults');
@@ -116,7 +120,9 @@ class LocationNotifier extends StateNotifier<LocationState> {
         position.longitude,
       );
       // ignore: avoid_print
-      print('Location result: lat=${position.latitude}, lng=${position.longitude}, city=$cityName');
+      print(
+        'Location result: lat=${position.latitude}, lng=${position.longitude}, city=$cityName',
+      );
       state = LocationState(
         lat: position.latitude,
         lng: position.longitude,
@@ -147,11 +153,7 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
   final PrayerTimeService _prayerTimeService;
 
   PrayerTimesNotifier(this._prayerTimeService)
-      : super(const PrayerTimesState(
-          times: {},
-          nextPrayer: '',
-          isLoading: true,
-        ));
+    : super(const PrayerTimesState(times: {}, nextPrayer: '', isLoading: true));
 
   void loadPrayerTimes(double lat, double lng) {
     state = state.copyWith(isLoading: true);
@@ -171,35 +173,56 @@ class PrayerTimesNotifier extends StateNotifier<PrayerTimesState> {
 
 // --- Providers ---
 
-final locationProvider =
-    StateNotifierProvider<LocationNotifier, LocationState>((ref) {
-  return LocationNotifier(LocationService(), StorageService());
-});
+final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
+  (ref) {
+    return LocationNotifier(LocationService(), StorageService());
+  },
+);
 
 final prayerTimesProvider =
     StateNotifierProvider<PrayerTimesNotifier, PrayerTimesState>((ref) {
-  final notifier = PrayerTimesNotifier(PrayerTimeService());
-  final location = ref.watch(locationProvider);
-  if (!location.isLoading) {
-    notifier.loadPrayerTimes(location.lat, location.lng);
-  }
-  return notifier;
-});
+      final notifier = PrayerTimesNotifier(PrayerTimeService());
+      final location = ref.watch(locationProvider);
+      if (!location.isLoading) {
+        notifier.loadPrayerTimes(location.lat, location.lng);
+      }
+      return notifier;
+    });
 
 final iftarCountdownProvider = StreamProvider<Duration>((ref) {
   final location = ref.watch(locationProvider);
   final prayerTimeService = PrayerTimeService();
-  return Stream.periodic(const Duration(seconds: 1), (_) {
-    return prayerTimeService.getTimeUntilIftar(location.lat, location.lng);
-  });
+
+  Stream<Duration> stream() async* {
+    if (location.isLoading) {
+      yield Duration.zero;
+      return;
+    }
+    yield prayerTimeService.getTimeUntilIftar(location.lat, location.lng);
+    yield* Stream.periodic(const Duration(seconds: 1), (_) {
+      return prayerTimeService.getTimeUntilIftar(location.lat, location.lng);
+    });
+  }
+
+  return stream();
 });
 
 final sahurCountdownProvider = StreamProvider<Duration>((ref) {
   final location = ref.watch(locationProvider);
   final prayerTimeService = PrayerTimeService();
-  return Stream.periodic(const Duration(seconds: 1), (_) {
-    return prayerTimeService.getTimeUntilSahur(location.lat, location.lng);
-  });
+
+  Stream<Duration> stream() async* {
+    if (location.isLoading) {
+      yield Duration.zero;
+      return;
+    }
+    yield prayerTimeService.getTimeUntilSahur(location.lat, location.lng);
+    yield* Stream.periodic(const Duration(seconds: 1), (_) {
+      return prayerTimeService.getTimeUntilSahur(location.lat, location.lng);
+    });
+  }
+
+  return stream();
 });
 
 // --- Theme ---
@@ -208,11 +231,11 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   final StorageService _storageService;
 
   ThemeModeNotifier(this._storageService)
-      : super(
-          (_storageService.getSetting<bool>('dark_mode') ?? true)
-              ? ThemeMode.dark
-              : ThemeMode.light,
-        );
+    : super(
+        (_storageService.getSetting<bool>('dark_mode') ?? true)
+            ? ThemeMode.dark
+            : ThemeMode.light,
+      );
 
   void toggle() {
     final isDark = state == ThemeMode.dark;
@@ -221,8 +244,9 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
+  ref,
+) {
   return ThemeModeNotifier(StorageService());
 });
 

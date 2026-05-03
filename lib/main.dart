@@ -1,4 +1,3 @@
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workmanager/workmanager.dart';
@@ -16,7 +15,7 @@ void callbackDispatcher() {
       final cached = storage.getLastLocation();
       final lat = (cached?['lat'] as num?)?.toDouble() ?? 41.0082;
       final lng = (cached?['lng'] as num?)?.toDouble() ?? 28.9784;
-      
+
       await NotificationService.scheduleDailyNotifications(lat, lng);
     } catch (err) {
       // ignore: avoid_print
@@ -28,10 +27,24 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
 
-  Workmanager().initialize(
-    callbackDispatcher,
+  Workmanager().initialize(callbackDispatcher);
+
+  // For Android 14+ (S23 etc.), we ensure the daily sync logic uses a periodic task
+  // that runs roughly once every day to refresh upcoming alarm schedules inside battery limits.
+  Workmanager().registerPeriodicTask(
+    'daily-notification-sync',
+    'daily-notification-sync-task',
+    frequency: const Duration(hours: 24),
+    initialDelay: const Duration(
+      minutes: 15,
+    ), // Avoid hitting it immediately on start
+    constraints: Constraints(
+      networkType: NetworkType.connected,
+      requiresBatteryNotLow:
+          true, // Sakin teknoloji: don't burn remaining battery
+    ),
+    existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
   );
 
   try {

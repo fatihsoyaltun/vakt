@@ -26,7 +26,15 @@ class PrayerTimeService {
   Duration getTimeUntilIftar(double lat, double lng) {
     final now = DateTime.now();
     final pt = getPrayerTimesForDate(lat, lng, now);
-    final diff = pt.maghrib.difference(now);
+    
+    if (now.isBefore(pt.maghrib)) {
+      return pt.maghrib.difference(now);
+    }
+    
+    // Transition to tomorrow's iftar
+    final tomorrow = now.add(const Duration(days: 1));
+    final tomorrowPt = getPrayerTimesForDate(lat, lng, tomorrow);
+    final diff = tomorrowPt.maghrib.difference(now);
     return diff.isNegative ? Duration.zero : diff;
   }
 

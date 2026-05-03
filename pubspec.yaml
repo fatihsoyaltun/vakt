@@ -59,10 +59,11 @@ dependencies:
   hijri: ^3.0.0
 
   # UI Yardımcıları
-  google_fonts: ^8.1.0
   flutter_svg: ^2.0.16
   lottie: ^3.3.1
   workmanager: ^0.9.0+3
+  sqflite: ^2.4.2+1
+  path: ^1.9.1
 
   
 
@@ -123,6 +124,7 @@ flutter:
 
   assets:
     - assets/data/quran_verses.json
+    - assets/data/ramadan_prayers.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

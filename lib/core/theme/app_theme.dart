@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -19,9 +18,7 @@ class AppTheme {
         onSecondary: AppColors.darkBackground,
         onSurface: AppColors.white,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(
-        ThemeData.dark().textTheme,
-      ),
+      fontFamily: 'Poppins',
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.darkBackground,
         foregroundColor: AppColors.white,
@@ -56,9 +53,7 @@ class AppTheme {
         onSecondary: AppColors.darkBackground,
         onSurface: AppColors.darkBackground,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(
-        ThemeData.light().textTheme,
-      ),
+      fontFamily: 'Poppins',
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightBackground,
         foregroundColor: AppColors.darkBackground,

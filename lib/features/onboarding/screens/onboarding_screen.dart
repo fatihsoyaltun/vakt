@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -111,7 +110,7 @@ class _WelcomePage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'VAKT',
-            style: GoogleFonts.poppins(
+            style: TextStyle(fontFamily: 'Poppins', 
               fontSize: 48,
               fontWeight: FontWeight.bold,
               color: AppColors.emerald,
