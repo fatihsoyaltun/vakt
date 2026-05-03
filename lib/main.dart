@@ -1,12 +1,38 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'app.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      await StorageService.init();
+      final storage = StorageService();
+      final cached = storage.getLastLocation();
+      final lat = (cached?['lat'] as num?)?.toDouble() ?? 41.0082;
+      final lng = (cached?['lng'] as num?)?.toDouble() ?? 28.9784;
+      
+      await NotificationService.scheduleDailyNotifications(lat, lng);
+    } catch (err) {
+      // ignore: avoid_print
+      print(err.toString());
+    }
+    return Future.value(true);
+  });
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
+
+  Workmanager().initialize(
+    callbackDispatcher,
+  );
 
   try {
     await StorageService.init();
@@ -17,14 +43,11 @@ void main() async {
 
   try {
     await NotificationService.init();
-    // Schedule notifications on startup using cached location
     final storage = StorageService();
     final cached = storage.getLastLocation();
     final lat = (cached?['lat'] as num?)?.toDouble() ?? 41.0082;
     final lng = (cached?['lng'] as num?)?.toDouble() ?? 28.9784;
     await NotificationService.scheduleDailyNotifications(lat, lng);
-    // ignore: avoid_print
-    print('Notifications scheduled on app startup (lat=$lat, lng=$lng)');
   } catch (e) {
     // ignore: avoid_print
     print('Notification init error: $e');

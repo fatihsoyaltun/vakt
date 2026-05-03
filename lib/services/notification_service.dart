@@ -22,7 +22,9 @@ class NotificationService {
       requestSoundPermission: true,
     );
     const settings = InitializationSettings(android: android, iOS: iOS);
-    await _plugin.initialize(settings);
+    
+    // Hatanın çözümü: Parametre adı 'settings' olarak güncellendi.
+    await _plugin.initialize(settings: settings);
 
     if (Platform.isAndroid) {
       await _requestAndroidPermissions();
@@ -36,12 +38,10 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     if (androidImpl == null) return;
 
-    // Required on Android 13+ (API 33)
     final notifGranted = await androidImpl.requestNotificationsPermission();
     // ignore: avoid_print
     print('Android POST_NOTIFICATIONS permission granted: $notifGranted');
 
-    // Required for exact alarm scheduling on Android 12+ (API 31)
     final alarmGranted = await androidImpl.requestExactAlarmsPermission();
     // ignore: avoid_print
     print('Android SCHEDULE_EXACT_ALARM permission granted: $alarmGranted');
@@ -73,11 +73,11 @@ class NotificationService {
     print('Scheduling iftar notification for: $iftarTime (alert at $tzTime)');
     try {
       await _plugin.zonedSchedule(
-        _iftarId,
-        'VAKT',
-        'İftara $minutesBefore dakika kaldı. Hazırlıklarınızı yapın.',
-        tzTime,
-        const NotificationDetails(
+        id: _iftarId,
+        title: 'VAKT',
+        body: 'İftara $minutesBefore dakika kaldı. Hazırlıklarınızı yapın.',
+        scheduledDate: tzTime,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'vakt_iftar',
             'İftar Bildirimi',
@@ -91,8 +91,6 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
       // ignore: avoid_print
@@ -115,11 +113,11 @@ class NotificationService {
     print('Scheduling sahur notification for: $sahurTime (alert at $tzTime)');
     try {
       await _plugin.zonedSchedule(
-        _sahurId,
-        'VAKT',
-        'Sahura $minutesBefore dakika kaldı. Uyanma vakti.',
-        tzTime,
-        const NotificationDetails(
+        id: _sahurId,
+        title: 'VAKT',
+        body: 'Sahura $minutesBefore dakika kaldı. Uyanma vakti.',
+        scheduledDate: tzTime,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'vakt_sahur',
             'Sahur Bildirimi',
@@ -133,8 +131,6 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
       // ignore: avoid_print
@@ -173,7 +169,6 @@ class NotificationService {
     }
 
     if (notifySahur) {
-      // Schedule for tomorrow's fajr
       final tomorrow = now.add(const Duration(days: 1));
       final tomorrowTimes =
           prayerService.getDailyPrayerTimes(lat, lng, tomorrow);

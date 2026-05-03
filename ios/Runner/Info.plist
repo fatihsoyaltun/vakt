@@ -51,5 +51,16 @@
 		<string>Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyacımız var.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
 		<string>Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyacımız var.</string>
+
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>processing</string>
+		</array>
+		<key>BGTaskSchedulerPermittedIdentifiers</key>
+		<array>
+			<string>be.tramckas.workmanager.BackgroundTask</string>
+		</array>
+
 	</dict>
 </plist>
