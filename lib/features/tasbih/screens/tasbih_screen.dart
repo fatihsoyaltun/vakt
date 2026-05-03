@@ -19,6 +19,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
   int _count = 0;
   int _loop = 0;
   int _target = 33;
+  int _lifetimeCount = 0;
 
   @override
   void initState() {
@@ -26,21 +27,36 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
     _count = _storage.getSetting<int>('tasbih_count') ?? 0;
     _loop = _storage.getSetting<int>('tasbih_loop') ?? 0;
     _target = _storage.getSetting<int>('tasbih_target') ?? 33;
+    _lifetimeCount = _storage.getSetting<int>('tasbih_lifetime_count') ?? 0;
+  }
+
+  void _triggerMilestoneHaptic() async {
+    HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 150));
+    HapticFeedback.heavyImpact();
   }
 
   void _increment() {
-    HapticFeedback.lightImpact();
     setState(() {
-      _count++;
       if (_count >= _target) {
         _count = 0;
         _loop++;
+      }
+      
+      _count++;
+      _lifetimeCount++;
+
+      if (_count == 33 || _count == 66 || _count == 99 || (_count % 100 == 0)) {
+        _triggerMilestoneHaptic();
+      } else {
+        HapticFeedback.lightImpact();
       }
     });
     _persist();
   }
 
   void _reset() {
+    HapticFeedback.vibrate();
     setState(() {
       _count = 0;
       _loop = 0;
@@ -49,6 +65,7 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
   }
 
   void _setTarget(int target) {
+    HapticFeedback.selectionClick();
     setState(() {
       _target = target;
       _count = 0;
@@ -61,39 +78,13 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
     _storage.saveSetting('tasbih_count', _count);
     _storage.saveSetting('tasbih_loop', _loop);
     _storage.saveSetting('tasbih_target', _target);
-  }
-
-  Future<void> _confirmReset() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card(ctx),
-        title: Text('Sıfırla', style: AppTextStyles.titleOf(ctx)),
-        content: Text(
-          'Sayacı sıfırlamak istediğinize emin misiniz?',
-          style: AppTextStyles.bodyOf(ctx),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('İptal',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child:
-                Text('Sıfırla', style: TextStyle(color: AppColors.emerald)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) _reset();
+    _storage.saveSetting('tasbih_lifetime_count', _lifetimeCount);
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = _target > 0 ? _count / _target : 0.0;
-    final isComplete = _count == 0 && _loop > 0;
+    final progress = _target > 0 ? (_count / _target).clamp(0.0, 1.0) : 0.0;
+    final isComplete = _count == _target;
 
     return SafeArea(
       child: Column(
@@ -117,14 +108,31 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                 const SizedBox(width: 8),
                 _TargetChip(
                   label: '∞',
-                  selected: _target != 33 && _target != 99,
+                  selected: _target >= 999999,
                   onTap: () => _setTarget(999999),
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: _confirmReset,
-                  icon: const Icon(Icons.refresh_rounded,
-                      color: AppColors.textSecondary),
+                Tooltip(
+                  message: "Sıfırlamak için basılı tutun",
+                  child: InkWell(
+                    onLongPress: _reset,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.refresh_rounded, size: 20, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sıfırla',
+                            style: AppTextStyles.captionOf(context).copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -141,24 +149,28 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                   children: [
                     // Progress ring + count
                     SizedBox(
-                      width: 220,
-                      height: 220,
+                      width: 250,
+                      height: 250,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
                           SizedBox(
-                            width: 220,
-                            height: 220,
-                            child: CircularProgressIndicator(
-                              value: progress,
-                              strokeWidth: 6,
-                              backgroundColor:
-                                  AppColors.card(context),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isComplete
-                                    ? AppColors.gold
-                                    : AppColors.emerald,
-                              ),
+                            width: 250,
+                            height: 250,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween<double>(begin: 0, end: progress),
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOut,
+                              builder: (context, value, _) {
+                                return CircularProgressIndicator(
+                                  value: value,
+                                  strokeWidth: 4,
+                                  backgroundColor: AppColors.card(context),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isComplete ? AppColors.gold : AppColors.emerald,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           Column(
@@ -166,16 +178,20 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                             children: [
                               Text(
                                 '$_count',
-                                style: TextStyle(fontFamily: 'Poppins', 
-                                  fontSize: 64,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.text(context),
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins', 
+                                  fontSize: 80,
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: -2,
                                 ),
                               ),
                               if (_target < 999999)
                                 Text(
                                   '/ $_target',
-                                  style: AppTextStyles.captionOf(context),
+                                  style: AppTextStyles.bodyOf(context).copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 18,
+                                  ),
                                 ),
                             ],
                           ),
@@ -183,15 +199,24 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     // Loop counter
+                    if (_loop > 0) ...[
+                      Text(
+                        'Tur: $_loop',
+                        style: AppTextStyles.titleOf(context).copyWith(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
                     Text(
-                      'Tur: $_loop',
-                      style: AppTextStyles.titleOf(context).copyWith(
-                        color: _loop > 0
-                            ? AppColors.gold
-                            : AppColors.textSecondary,
+                      'Toplam: $_lifetimeCount',
+                      style: AppTextStyles.captionOf(context).copyWith(
+                        color: AppColors.textSecondary.withAlpha((0.6 * 255).round()),
                       ),
                     ),
 
@@ -199,8 +224,10 @@ class _TasbihScreenState extends ConsumerState<TasbihScreen> {
 
                     // Tap hint
                     Text(
-                      'Saymak için dokun',
-                      style: AppTextStyles.captionOf(context),
+                      'Saymak için ekrana dokun',
+                      style: AppTextStyles.captionOf(context).copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -229,15 +256,19 @@ class _TargetChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.emerald : AppColors.card(context),
-          borderRadius: BorderRadius.circular(20),
+          color: selected ? AppColors.emerald.withAlpha((0.15 * 255).round()) : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected ? AppColors.emerald : AppColors.card(context),
+            width: 1.5,
+          ),
         ),
         child: Text(
           label,
           style: AppTextStyles.bodyOf(context).copyWith(
-            color: selected ? AppColors.white : AppColors.textSecondary,
+            color: selected ? AppColors.emerald : AppColors.textSecondary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
