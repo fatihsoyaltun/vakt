@@ -4,34 +4,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_compass/flutter_compass.dart';
+// ignore: implementation_imports
+import 'package:flutter_qiblah/src/utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../home/providers/home_provider.dart';
 
-// Kaaba coordinates
-const double _kaabaLat = 21.4225;
-const double _kaabaLng = 39.8262;
-
-/// Calculate qibla bearing from [lat],[lng] to the Kaaba using the atan2 formula.
-/// For Istanbul (41.0082°N, 28.9784°E) result should be ≈ 151–153° (Southeast).
-double _calculateQiblaDirection(double lat, double lng) {
-  final userLat = lat * (math.pi / 180);
-  final kaabaLat = _kaabaLat * (math.pi / 180);
-  final deltaLng = (_kaabaLng - lng) * (math.pi / 180);
-
-  final y = math.sin(deltaLng);
-  final x = math.cos(userLat) * math.tan(kaabaLat) -
-      math.sin(userLat) * math.cos(deltaLng);
-
-  var bearing = math.atan2(y, x) * (180 / math.pi);
-  bearing = (bearing + 360) % 360;
-
-  // ignore: avoid_print
-  print('Qibla bearing: $bearing degrees (lat=$lat, lng=$lng)');
-  return bearing;
-}
 
 class QiblaScreen extends ConsumerStatefulWidget {
   final bool isActive;
@@ -78,9 +58,16 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
           final rawHeading = event.heading;
           if (mounted && rawHeading != null) {
             final h = (rawHeading + 360) % 360; // Always 0-360
-            // ignore: avoid_print
-            print('Device heading (raw=$rawHeading, normalized=$h)');
-            setState(() => _heading = h);
+            if (_heading == null) {
+              setState(() => _heading = h);
+            } else {
+              double diff = h - _heading!;
+              if (diff > 180) diff -= 360;
+              if (diff < -180) diff += 360;
+              double smoothed = (_heading! + diff * 0.15); // Sakin EMA smoothing 
+              smoothed = (smoothed + 360) % 360;
+              setState(() => _heading = smoothed);
+            }
           }
         },
         onError: (_) {
@@ -138,7 +125,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   void _handleAlignment(bool isAligned) {
     if (!widget.isActive) return;
     if (isAligned && !_hapticFired) {
-      HapticFeedback.heavyImpact();
+      HapticFeedback.lightImpact();
       _hapticFired = true;
       _pulseController.repeat(reverse: true);
     } else if (!isAligned && _hapticFired) {
@@ -151,7 +138,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
   @override
   Widget build(BuildContext context) {
     final location = ref.watch(locationProvider);
-    final qiblaAngle = _calculateQiblaDirection(location.lat, location.lng);
+    final qiblaAngle = Utils.getOffsetFromNorth(location.lat, location.lng);
 
     // Still waiting for compass data and timeout hasn't fired yet.
     if (_heading == null && !_compassFailed) {
@@ -231,10 +218,8 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
             alignment: Alignment.center,
             children: [
               // Rotating compass face
-              AnimatedRotation(
-                turns: -heading / 360,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
+              Transform.rotate(
+                angle: -heading * (math.pi / 180),
                 child: CustomPaint(
                   size: const Size(280, 280),
                   painter: _CompassPainter(
@@ -245,10 +230,8 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
               ),
 
               // Qibla indicator (mosque + arrow)
-              AnimatedRotation(
-                turns: (qiblaAngle - heading) / 360,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
+              Transform.rotate(
+                angle: (qiblaAngle - heading) * (math.pi / 180),
                 child: AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) => Transform.scale(
@@ -397,31 +380,25 @@ class _CompassPainter extends CustomPainter {
       ..strokeWidth = 2.5;
     canvas.drawCircle(center, outerR, ringPaint);
 
-    // ── Tick marks (every 5°; large every 30°) ──
+    // ── Tick marks (only large ones every 30° to reduce visual noise) ──
     final tickPaint = Paint();
-    for (int i = 0; i < 72; i++) {
-      final angle = i * 5 * (math.pi / 180);
-      final isCardinal = i % 18 == 0; // 0°, 90°, 180°, 270°
-      final isLarge = i % 6 == 0; // every 30°
+    for (int i = 0; i < 12; i++) {
+      final angle = i * 30 * (math.pi / 180);
+      final isCardinal = i % 3 == 0; // 0°, 90°, 180°, 270°
 
-      final tickOuter = outerR - 2;
+      final tickOuter = outerR - 4;
       double tickInner;
 
       if (isCardinal) {
-        tickInner = outerR - 28;
+        tickInner = outerR - 24;
         tickPaint
-          ..color = cardinalColor
-          ..strokeWidth = 2.5;
-      } else if (isLarge) {
-        tickInner = outerR - 20;
-        tickPaint
-          ..color = tickColor
-          ..strokeWidth = 1.5;
+          ..color = cardinalColor.withAlpha(200)
+          ..strokeWidth = 2.0;
       } else {
-        tickInner = outerR - 12;
+        tickInner = outerR - 14;
         tickPaint
-          ..color = tickColor.withAlpha(80)
-          ..strokeWidth = 1;
+          ..color = tickColor.withAlpha(120)
+          ..strokeWidth = 1.5;
       }
 
       canvas.drawLine(

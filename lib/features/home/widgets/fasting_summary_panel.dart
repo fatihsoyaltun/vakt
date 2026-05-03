@@ -12,7 +12,7 @@ import '../widgets/daily_prayer_card.dart';
 class FastingSummaryPanel extends ConsumerWidget {
   const FastingSummaryPanel({super.key});
 
-  void _showLoggingSheet(BuildContext context, WidgetRef ref) {
+  static void showLoggingSheet(BuildContext context, WidgetRef ref) {
     final currentStatus = ref.read(fastingProvider.notifier).getTodayStatus();
 
     showModalBottomSheet(
@@ -112,7 +112,7 @@ class FastingSummaryPanel extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        _showLoggingSheet(context, ref);
+        showLoggingSheet(context, ref);
       },
       child: Card(
         color: AppColors.card(context),

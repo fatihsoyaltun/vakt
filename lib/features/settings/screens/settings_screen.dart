@@ -49,11 +49,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             color: AppColors.card(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: SwitchListTile(
-              title: Text('Karanlık Mod', style: AppTextStyles.bodyOf(context)),
-              value: isDark,
-              activeTrackColor: AppColors.emerald,
-              onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: Text('Karanlık Mod', style: AppTextStyles.bodyOf(context)),
+                  value: isDark,
+                  activeTrackColor: AppColors.emerald,
+                  onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                SwitchListTile(
+                  title: Text('Büyük Yazı Tipi (Erişilebilirlik)', style: AppTextStyles.bodyOf(context)),
+                  value: ref.watch(largeFontProvider),
+                  activeTrackColor: AppColors.emerald,
+                  onChanged: (_) => ref.read(largeFontProvider.notifier).toggle(),
+                ),
+              ],
             ),
           ),
 

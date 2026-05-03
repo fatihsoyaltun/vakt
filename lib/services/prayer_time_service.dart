@@ -1,4 +1,5 @@
 import 'package:adhan/adhan.dart';
+import 'package:hijri/hijri_calendar.dart';
 
 class PrayerTimeService {
   static final _params = CalculationMethod.turkey.getParameters();
@@ -76,5 +77,15 @@ class PrayerTimeService {
         // All prayers passed today, next is tomorrow's fajr
         return 'İmsak';
     }
+  }
+
+  int getCurrentRamadanDay() {
+    final hijri = HijriCalendar.now();
+    // 9 is Ramadan in Hijri calendar
+    if (hijri.hMonth == 9) {
+      return hijri.hDay;
+    }
+    // Fallback: If outside of Ramadan, just use 1 or mod logic.
+    return 1;
   }
 }

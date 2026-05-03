@@ -225,7 +225,7 @@ final sahurCountdownProvider = StreamProvider<Duration>((ref) {
   return stream();
 });
 
-// --- Theme ---
+// --- Theme / Accessibility ---
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   final StorageService _storageService;
@@ -244,10 +244,29 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
+class LargeFontNotifier extends StateNotifier<bool> {
+  final StorageService _storageService;
+
+  LargeFontNotifier(this._storageService)
+    : super(_storageService.getSetting<bool>('large_font') ?? false);
+
+  void toggle() {
+    final newValue = !state;
+    state = newValue;
+    _storageService.saveSetting('large_font', newValue);
+  }
+}
+
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((
   ref,
 ) {
   return ThemeModeNotifier(StorageService());
+});
+
+final largeFontProvider = StateNotifierProvider<LargeFontNotifier, bool>((
+  ref,
+) {
+  return LargeFontNotifier(StorageService());
 });
 
 // --- Verse ---

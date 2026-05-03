@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,10 +6,12 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
 import 'features/home/providers/home_provider.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/home/widgets/fasting_summary_panel.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/tasbih/screens/tasbih_screen.dart';
 import 'features/qibla/screens/qibla_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 
 class VaktApp extends ConsumerStatefulWidget {
@@ -35,6 +38,7 @@ class _VaktAppState extends ConsumerState<VaktApp> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
+    final isLargeFont = ref.watch(largeFontProvider);
 
     return MaterialApp(
       title: 'VAKT',
@@ -42,6 +46,15 @@ class _VaktAppState extends ConsumerState<VaktApp> {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
+      builder: (context, child) {
+        final data = MediaQuery.of(context);
+        return MediaQuery(
+          data: data.copyWith(
+            textScaler: TextScaler.linear(isLargeFont ? 1.25 : 1.0),
+          ),
+          child: child!,
+        );
+      },
       home: _onboardingComplete
           ? const _MainShell()
           : OnboardingScreen(onComplete: _completeOnboarding),
@@ -49,15 +62,38 @@ class _VaktAppState extends ConsumerState<VaktApp> {
   }
 }
 
-class _MainShell extends StatefulWidget {
+class _MainShell extends ConsumerStatefulWidget {
   const _MainShell();
 
   @override
-  State<_MainShell> createState() => _MainShellState();
+  ConsumerState<_MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell> {
+class _MainShellState extends ConsumerState<_MainShell> {
   int _currentIndex = 0;
+  late StreamSubscription _notifSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifSub = NotificationService.selectNotificationStream.stream.listen((payload) {
+      if (payload == 'iftar_alert') {
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // ensure we have context and provider ref to show the sheet
+          FastingSummaryPanel.showLoggingSheet(context, ref);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _notifSub.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

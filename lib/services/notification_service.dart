@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -11,6 +13,8 @@ class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static const _iftarId = 1;
   static const _sahurId = 2;
+  
+  static final StreamController<String?> selectNotificationStream = StreamController<String?>.broadcast();
 
   static Future<void> init() async {
     tz.initializeTimeZones();
@@ -24,7 +28,9 @@ class NotificationService {
     const settings = InitializationSettings(android: android, iOS: iOS);
 
     // Hatanın çözümü: Parametre adı 'settings' olarak güncellendi.
-    await _plugin.initialize(settings: settings);
+    await _plugin.initialize(settings: settings, onDidReceiveNotificationResponse: (details) {
+      selectNotificationStream.add(details.payload);
+    });
 
     if (Platform.isAndroid) {
       await _requestAndroidPermissions();
@@ -75,13 +81,22 @@ class NotificationService {
     final tzTime = tz.TZDateTime.from(scheduleTime, tz.local);
     // ignore: avoid_print
     print('Scheduling iftar notification for: $iftarTime (alert at $tzTime)');
+    
+    // Distinct long vibration pattern for elderly-friendly alerts
+    final Int64List vibrationPattern = Int64List(4);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 1000;
+    vibrationPattern[2] = 500;
+    vibrationPattern[3] = 1000;
+
     try {
       await _plugin.zonedSchedule(
         id: _iftarId,
         title: 'VAKT',
         body: 'İftara $minutesBefore dakika kaldı. Hazırlıklarınızı yapın.',
         scheduledDate: tzTime,
-        notificationDetails: const NotificationDetails(
+        payload: 'iftar_alert',
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             'vakt_iftar',
             'İftar Bildirimi',
@@ -91,8 +106,10 @@ class NotificationService {
             category: AndroidNotificationCategory
                 .alarm, // Important for battery overrides
             audioAttributesUsage: AudioAttributesUsage.alarm,
+            vibrationPattern: vibrationPattern,
+            enableVibration: true,
           ),
-          iOS: DarwinNotificationDetails(
+          iOS: const DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
@@ -118,13 +135,22 @@ class NotificationService {
     final tzTime = tz.TZDateTime.from(scheduleTime, tz.local);
     // ignore: avoid_print
     print('Scheduling sahur notification for: $sahurTime (alert at $tzTime)');
+    
+    // Distinct long vibration pattern for elderly-friendly alerts
+    final Int64List vibrationPattern = Int64List(4);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 1000;
+    vibrationPattern[2] = 500;
+    vibrationPattern[3] = 1000;
+
     try {
       await _plugin.zonedSchedule(
         id: _sahurId,
         title: 'VAKT',
         body: 'Sahura $minutesBefore dakika kaldı. Uyanma vakti.',
         scheduledDate: tzTime,
-        notificationDetails: const NotificationDetails(
+        payload: 'sahur_alert',
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             'vakt_sahur',
             'Sahur Bildirimi',
@@ -134,8 +160,10 @@ class NotificationService {
             category: AndroidNotificationCategory
                 .alarm, // Important for battery overrides
             audioAttributesUsage: AudioAttributesUsage.alarm,
+            vibrationPattern: vibrationPattern,
+            enableVibration: true,
           ),
-          iOS: DarwinNotificationDetails(
+          iOS: const DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,

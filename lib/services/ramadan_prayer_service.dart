@@ -24,11 +24,9 @@ class RamadanPrayerService {
     }
   }
 
-  RamadanPrayer getPrayerForFastingDay(int fastedDays, List<RamadanPrayer> prayers) {
+  RamadanPrayer getPrayerForRamadanDay(int ramadanDay, List<RamadanPrayer> prayers) {
     if (prayers.isEmpty) return const RamadanPrayer(dayIndex: 1, title: "", arabic: "", turkish: "");
-    // Use fastedDays directly (if 1 day fasted, show day 1 prayer)
-    // If they fasted 0 days, maybe show day 1. 
-    int index = fastedDays > 0 ? fastedDays - 1 : 0;
+    int index = ramadanDay > 0 ? ramadanDay - 1 : 0;
     index = index.clamp(0, prayers.length - 1);
     return prayers[index];
   }
